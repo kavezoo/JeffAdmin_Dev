@@ -50,4 +50,10 @@ nbproject/*
 # yarn
 yarn-debug.log
 yarn-error.log
-plgins/*
+
+# Local CakePHP plugins (often nested git checkouts)
+/plugins/*
+!/plugins/.gitkeep
+
+# Editor workspace
+*.code-workspace
