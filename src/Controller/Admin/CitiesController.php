@@ -19,13 +19,8 @@ class CitiesController extends AppController
      */
     public function index()
     {
-        $this->paginate = [
-            'limit' => 10,
-        ];
         $query = $this->Cities->find();
-        $cities = $this->paginate($query, [
-            'order' => ['Cities.name' => 'asc'],
-        ]);
+        $cities = $this->paginate($query);
 
         $this->set(compact('cities'));
     }
@@ -39,7 +34,7 @@ class CitiesController extends AppController
      */
     public function view($id = null)
     {
-        $city = $this->Cities->get($id, contain: ['Clubs', 'Competitions', 'Users']);
+        $city = $this->Cities->get($id, contain: ['Customers']);
         $this->set(compact('city'));
     }
 

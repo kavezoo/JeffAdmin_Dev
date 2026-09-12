@@ -21,9 +21,7 @@ use Cake\ORM\Entity;
  * @property \Cake\I18n\DateTime|null $created
  * @property \Cake\I18n\DateTime|null $modified
  *
- * @property \App\Model\Entity\Club[] $clubs
- * @property \App\Model\Entity\Competition[] $competitions
- * @property \App\Model\Entity\User[] $users
+ * @property \App\Model\Entity\Customer[] $customers
  */
 class City extends Entity
 {
@@ -48,8 +46,6 @@ class City extends Entity
         'pos' => true,
         'created' => true,
         'modified' => true,
-        'clubs' => true,
-        'competitions' => true,
-        'users' => true,
+        'customers' => true,
     ];
 }

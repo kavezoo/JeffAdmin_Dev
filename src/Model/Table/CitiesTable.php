@@ -11,9 +11,7 @@ use Cake\Validation\Validator;
 /**
  * Cities Model
  *
- * @property \App\Model\Table\ClubsTable&\Cake\ORM\Association\HasMany $Clubs
- * @property \App\Model\Table\CompetitionsTable&\Cake\ORM\Association\HasMany $Competitions
- * @property \App\Model\Table\UsersTable&\Cake\ORM\Association\HasMany $Users
+ * @property \App\Model\Table\CustomersTable&\Cake\ORM\Association\HasMany $Customers
  *
  * @method \App\Model\Entity\City newEmptyEntity()
  * @method \App\Model\Entity\City newEntity(array $data, array $options = [])
@@ -49,13 +47,7 @@ class CitiesTable extends Table
 
         $this->addBehavior('Timestamp');
 
-        $this->hasMany('Clubs', [
-            'foreignKey' => 'city_id',
-        ]);
-        $this->hasMany('Competitions', [
-            'foreignKey' => 'city_id',
-        ]);
-        $this->hasMany('Users', [
+        $this->hasMany('Customers', [
             'foreignKey' => 'city_id',
         ]);
     }
