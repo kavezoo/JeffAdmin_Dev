@@ -27,8 +27,8 @@ class CustomersFixture extends TestFixture
                 'visible' => 1,
                 'pos' => 1,
                 'order_count' => 1,
-                'created' => '2026-09-12 05:41:15',
-                'modified' => '2026-09-12 05:41:15',
+                'created' => '2026-09-15 12:50:16',
+                'modified' => '2026-09-15 12:50:16',
             ],
         ];
         parent::init();

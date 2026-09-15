@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Controller\Admin\AppController;
-use Cake\ORM\Query\SelectQuery;
 
 /**
  * Customers Controller
@@ -23,33 +22,24 @@ class CustomersController extends AppController
         $query = $this->Customers->find()
             ->contain(['Cities']);
 
-        /*
-         * Szöveges keresés / szűrés (header ?search=).
-         * Szóközök → % : "szöveg valami mégvalami" => %szöveg%valami%mégvalami%
-         * Saját szöveges mezők + szülő Cities szöveges mezői.
-         *
-         * Bekapcsoláshoz vedd ki a kommentet.
-         *
+        // Header kereső (?search=) — sessionből a JeffAdmin AppController állítja vissza.
         $search = trim((string)$this->request->getQuery('search', ''));
         if ($search !== '') {
             $parts = preg_split('/\s+/u', $search, -1, PREG_SPLIT_NO_EMPTY) ?: [];
             $like = '%' . implode('%', $parts) . '%';
 
             $query
-                ->leftJoinWith('Cities')
+                ->leftJoinWith(['Cities'])
                 ->where([
                     'OR' => [
                         'Customers.name LIKE' => $like,
                         'Customers.address LIKE' => $like,
                         'Customers.phone LIKE' => $like,
                         'Cities.name LIKE' => $like,
-                        'Cities.shortname LIKE' => $like,
-                        'Cities.zip LIKE' => $like,
                     ],
                 ])
                 ->distinct(['Customers.id']);
         }
-        */
 
         $customers = $this->paginate($query);
 
@@ -67,12 +57,9 @@ class CustomersController extends AppController
     {
         $this->rememberLastRecord($id);
 
-        $customer = $this->Customers->get($id, contain: [
-            'Cities',
-            'Orders' => function (SelectQuery $q) {
-                return $q->orderBy(['Orders.datetime' => 'DESC']);
-            },
-        ]);
+        $customer = $this->Customers->get($id, contain: ['Cities', 'Orders']);
+        //dd($id);
+        //dd($customer->toArray());
         $cities = $this->Customers->Cities->find('list', limit: 200)->all();
         $this->set(compact('customer', 'cities'));
     }
@@ -86,7 +73,11 @@ class CustomersController extends AppController
     {
         $customer = $this->Customers->newEmptyEntity();
         if ($this->request->is('post')) {
-            $customer = $this->Customers->patchEntity($customer, $this->request->getData());
+            $data = $this->request->getData();
+            //dd($data);
+            $customer = $this->Customers->patchEntity($customer, $data);
+            //dd($customer->toArray());
+            //dd($customer->getErrors());
             if ($this->Customers->save($customer)) {
                 $this->Flash->success(__('The customer has been saved.'));
                 $this->rememberLastRecord($customer->id);
@@ -112,7 +103,11 @@ class CustomersController extends AppController
 
         $customer = $this->Customers->get($id, contain: []);
         if ($this->request->is(['patch', 'post', 'put'])) {
-            $customer = $this->Customers->patchEntity($customer, $this->request->getData());
+            $data = $this->request->getData();
+            //dd($data);
+            $customer = $this->Customers->patchEntity($customer, $data);
+            //dd($customer->toArray());
+            //dd($customer->getErrors());
             if ($this->Customers->save($customer)) {
                 $this->Flash->success(__('The customer has been saved.'));
 

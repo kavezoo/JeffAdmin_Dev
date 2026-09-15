@@ -1,118 +1,247 @@
-<?php
+                                                                                                            <?php
 /**
  * @var \App\View\AppView $this
  * @var \App\Model\Entity\City $city
  */
+
+use Cake\Core\Configure;
+
+$show = Configure::read('JeffAdmin');
+$showLocal = [];
+
+$showLocal['view'] = [
+//    'editButton'      => false,
+//    'cancelButton'    => false,
+//    'relatedTables'   => false,
+//    'posStep'         => 5,   // pos spinner lépés (alap: 10)
+];
+
+$show = array_merge($show['view'] ?? [], $showLocal['view']);
+$relatedShow = array_merge(Configure::read('JeffAdmin.index') ?? [], []);
+$containerLess = ['inputContainer' => '{{content}}'];
 ?>
-<div class="row">
-    <aside class="column">
-        <div class="side-nav">
-            <h4 class="heading"><?= __('Actions') ?></h4>
-            <?= $this->Html->link(__('Edit City'), ['action' => 'edit', $city->id], ['class' => 'side-nav-item']) ?>
-            <?= $this->Form->postLink(__('Delete City'), ['action' => 'delete', $city->id], ['confirm' => __('Are you sure you want to delete # {0}?', $city->id), 'class' => 'side-nav-item']) ?>
-            <?= $this->Html->link(__('List Cities'), ['action' => 'index'], ['class' => 'side-nav-item']) ?>
-            <?= $this->Html->link(__('New City'), ['action' => 'add'], ['class' => 'side-nav-item']) ?>
-        </div>
-    </aside>
-    <div class="column column-80">
-        <div class="cities view content">
-            <h3><?= h($city->name) ?></h3>
-            <table>
-                <tr>
-                    <th><?= __('Shortname') ?></th>
-                    <td><?= h($city->shortname) ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('Name') ?></th>
-                    <td><?= h($city->name) ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('Zip') ?></th>
-                    <td><?= h($city->zip) ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('Lat') ?></th>
-                    <td><?= h($city->lat) ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('Lng') ?></th>
-                    <td><?= h($city->lng) ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('Id') ?></th>
-                    <td><?= $this->Number->format($city->id) ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('Club Count') ?></th>
-                    <td><?= $this->Number->format($city->club_count) ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('User Count') ?></th>
-                    <td><?= $city->user_count === null ? '' : $this->Number->format($city->user_count) ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('Pos') ?></th>
-                    <td><?= $this->Number->format($city->pos) ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('Created') ?></th>
-                    <td><?= h($city->created) ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('Modified') ?></th>
-                    <td><?= h($city->modified) ?></td>
-                </tr>
-                <tr>
-                    <th><?= __('Visible') ?></th>
-                    <td><?= $city->visible ? __('Yes') : __('No'); ?></td>
-                </tr>
-            </table>
-            <div class="related">
-                <h4><?= __('Related Customers') ?></h4>
-                <?php if (!empty($city->customers)) : ?>
-                <div class="table-responsive">
-                    <table>
-                        <tr>
-                            <th><?= __('Id') ?></th>
-                            <th><?= __('Name') ?></th>
-                            <th><?= __('Address') ?></th>
-                            <th><?= __('Phone') ?></th>
-                            <th><?= __('Visible') ?></th>
-                            <th><?= __('Pos') ?></th>
-                            <th><?= __('Order Count') ?></th>
-                            <th><?= __('Created') ?></th>
-                            <th><?= __('Modified') ?></th>
-                            <th class="actions"><?= __('Actions') ?></th>
-                        </tr>
-                        <?php foreach ($city->customers as $customer) : ?>
-                        <tr>
-                            <td><?= h($customer->id) ?></td>
-                            <td><?= h($customer->name) ?></td>
-                            <td><?= h($customer->address) ?></td>
-                            <td><?= h($customer->phone) ?></td>
-                            <td><?= h($customer->visible) ?></td>
-                            <td><?= h($customer->pos) ?></td>
-                            <td><?= h($customer->order_count) ?></td>
-                            <td><?= h($customer->created) ?></td>
-                            <td><?= h($customer->modified) ?></td>
-                            <td class="actions">
-                                <?= $this->Html->link(__('View'), ['controller' => 'Customers', 'action' => 'view', $customer->id]) ?>
-                                <?= $this->Html->link(__('Edit'), ['controller' => 'Customers', 'action' => 'edit', $customer->id]) ?>
-                                <?= $this->Form->postLink(
-                                    __('Delete'),
-                                    ['controller' => 'Customers', 'action' => 'delete', $customer->id],
-                                    [
-                                        'method' => 'delete',
-                                        'confirm' => __('Are you sure you want to delete # {0}?', $customer->id),
-                                    ]
-                                ) ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </table>
+              <div class="row row-tight" style="margin-top: 16px;">
+                <div class="col-12 col-xxl-11">
+                  <?= $this->Form->create($city, [
+                      'class' => 'form-horizontal',
+                      'id' => 'city-view-form',
+                      'onsubmit' => 'return false;',
+                  ]) ?>
+                  <div class="card shadow" aria-labelledby="city-form-title">
+                    <div class="card-header form-card-header">
+                      <div class="form-card-header__title">
+                        <strong id="city-form-title"><?= __('View City') ?></strong>
+                        <small class="d-block"><?= h($city->name) ?></small>
+                      </div>
+
+                      <ul class="nav nav-tabs card-header-tabs form-card-header__tabs" id="formTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                          <a class="nav-link active" id="tab-basic-btn" data-bs-toggle="tab" href="#tab-basic" role="tab" aria-controls="tab-basic" aria-current="page" aria-selected="true"><?= __('Basic data') ?></a>
+                        </li>
+                        <li class="nav-item ms-auto" role="presentation">
+                          <a class="nav-link" id="tab-settings-btn" data-bs-toggle="tab" href="#tab-settings" role="tab" aria-controls="tab-settings" aria-selected="false"><?= __('Settings') ?></a>
+                        </li>
+                      </ul>
+
+                      <?= $this->Action->close($city->id) ?>
+                    </div>
+
+                    <div class="card-body form-card-body">
+                      <div class="tab-content">
+
+                        <div class="tab-pane fade show active" id="tab-basic" role="tabpanel" aria-labelledby="tab-basic-btn" tabindex="0">
+                          <div class="row mb-3">
+                            <div class="col-12 col-md-2 text-start text-md-end">
+                              <?= $this->Form->label('shortname', __('Shortname') . ':', ['class' => 'form-control-label fw-bold']) ?>
+                            </div>
+                            <div class="col-12 col-md-9">
+                              <?= $this->Form->control('shortname', ['label' => false, 'class' => 'form-control', 'disabled' => true, 'templates' => $containerLess]) ?>
+                            </div>
+                          </div>
+                          <div class="row mb-3">
+                            <div class="col-12 col-md-2 text-start text-md-end">
+                              <?= $this->Form->label('name', __('Name') . ':', ['class' => 'form-control-label fw-bold']) ?>
+                            </div>
+                            <div class="col-12 col-md-9">
+                              <?= $this->Form->control('name', ['label' => false, 'class' => 'form-control', 'disabled' => true, 'templates' => $containerLess]) ?>
+                            </div>
+                          </div>
+                          <div class="row mb-3">
+                            <div class="col-12 col-md-2 text-start text-md-end">
+                              <?= $this->Form->label('zip', __('Zip') . ':', ['class' => 'form-control-label fw-bold']) ?>
+                            </div>
+                            <div class="col-12 col-md-9">
+                              <?= $this->Form->control('zip', ['label' => false, 'class' => 'form-control', 'disabled' => true, 'templates' => $containerLess]) ?>
+                            </div>
+                          </div>
+                          <div class="row mb-3">
+                            <div class="col-12 col-md-2 text-start text-md-end">
+                              <?= $this->Form->label('lat', __('Lat') . ':', ['class' => 'form-control-label fw-bold']) ?>
+                            </div>
+                            <div class="col-12 col-md-9">
+                              <?= $this->Form->control('lat', ['label' => false, 'class' => 'form-control', 'disabled' => true, 'templates' => $containerLess]) ?>
+                            </div>
+                          </div>
+                          <div class="row mb-3">
+                            <div class="col-12 col-md-2 text-start text-md-end">
+                              <?= $this->Form->label('lng', __('Lng') . ':', ['class' => 'form-control-label fw-bold']) ?>
+                            </div>
+                            <div class="col-12 col-md-9">
+                              <?= $this->Form->control('lng', ['label' => false, 'class' => 'form-control', 'disabled' => true, 'templates' => $containerLess]) ?>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="tab-settings" role="tabpanel" aria-labelledby="tab-settings-btn" tabindex="0">
+                          <section class="form-section">
+                            <h5 class="form-section__title"><?= __('Record settings') ?></h5>
+                            <div class="row mb-3 align-items-center">
+                              <div class="col-12 col-md-2 text-start text-md-end">
+                                <?= $this->Form->label('visible', __('Visible') . ':', ['class' => 'form-control-label fw-bold mb-0']) ?>
+                              </div>
+                              <div class="col-12 col-md-9 d-flex align-items-center flex-wrap pt-1">
+                                <div class="form-check form-check-inline mb-0">
+                                  <?= $this->Form->checkbox('visible', ['class' => 'form-check-input', 'id' => 'visible', 'disabled' => true]) ?>
+                                  <?= $this->Form->label('visible', __('Visible'), ['class' => 'form-check-label']) ?>
+                                </div>
+                              </div>
+                            </div>
+                            <?php
+                            $posStep = max(1, (int)($show['posStep'] ?? 10));
+                            ?>
+                            <div class="row mb-3">
+                              <div class="col-12 col-md-2 text-start text-md-end">
+                                <?= $this->Form->label('pos', __('Pos') . ':', ['class' => 'form-control-label fw-bold']) ?>
+                              </div>
+                              <div class="col-12 col-md-9">
+                                <?= $this->Form->control('pos', ['label' => false, 'type' => 'text', 'class' => 'form-control', 'data-number-spinner' => true, 'data-integer' => '1', 'inputmode' => 'numeric', 'min' => '0', 'step' => (string)$posStep, 'autocomplete' => 'off', 'placeholder' => '0', 'disabled' => true, 'templates' => $containerLess]) ?>
+                              </div>
+                            </div>
+                          </section>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    <div class="card-footer border-top">
+                      <div class="offset-md-2">
+<?php if (!empty($show['editButton'])) : ?>
+                        <?= $this->Action->editButton($city->id) ?>
+<?php endif; ?>
+<?php if (!empty($show['cancelButton'])) : ?>
+                        <?= $this->Action->cancelButton($city->id) ?>
+<?php endif; ?>
+                      </div>
+                    </div>
+                  </div>
+                  <?= $this->Form->end() ?>
+
+<?php if (!empty($show['relatedTables'])) : ?>
+                  <div class="card shadow related-card" style="margin-top: 16px;" aria-labelledby="city-related-title">
+                    <div class="card-header form-card-header">
+                      <div class="form-card-header__title">
+                        <strong id="city-related-title"><?= __('Related records') ?></strong>
+                        <small class="d-block"><?= h($city->name) ?></small>
+                      </div>
+
+                      <ul class="nav nav-tabs card-header-tabs form-card-header__tabs" id="relatedTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                          <a class="nav-link active" id="related-tab-customers-btn" data-bs-toggle="tab" href="#related-tab-customers" role="tab" aria-controls="related-tab-customers" aria-current="page" aria-selected="true"><?= __('Customers') ?></a>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div class="card-body p-0">
+                      <div class="tab-content">
+                        <div class="tab-pane fade show active" id="related-tab-customers" role="tabpanel" aria-labelledby="related-tab-customers-btn" tabindex="0">
+                          <div class="table-responsive text-nowrap">
+                            <table class="table table-data2 table-border table-hover table-striped table-custom-hover mb-0">
+                              <thead>
+                                <tr>
+<?php if (!empty($relatedShow['rowId'])) : ?>
+                                  <th class="integer id-col"><?= __('Id') ?></th>
+<?php endif; ?>
+                                  <th class="string"><?= __('Name') ?></th>
+                                  <th class="string"><?= __('Address') ?></th>
+                                  <th class="string"><?= __('Phone') ?></th>
+<?php if (!empty($relatedShow['visible'])) : ?>
+                                  <th class="boolean"><?= __('Visible') ?></th>
+<?php endif; ?>
+<?php if (!empty($relatedShow['pos'])) : ?>
+                                  <th class="integer pos"><?= __('Pos') ?></th>
+<?php endif; ?>
+                                  <th class="string"><?= __('Order Count') ?></th>
+<?php if (!empty($relatedShow['created']) || !empty($relatedShow['modified'])) : ?>
+                                  <th class="datetime-meta">
+<?php     if (!empty($relatedShow['created'])) : ?>
+                                    <?= __('Created') ?>
+<?php     endif; ?>
+<?php     if (!empty($relatedShow['created']) && !empty($relatedShow['modified'])) : ?>
+                                    <br>
+<?php     endif; ?>
+<?php     if (!empty($relatedShow['modified'])) : ?>
+                                    <?= __('Modified') ?>
+<?php     endif; ?>
+                                  </th>
+<?php endif; ?>
+<?php if (!empty($relatedShow['viewButton']) || !empty($relatedShow['editButton']) || !empty($relatedShow['deleteButton'])) : ?>
+                                  <th class="action"><?= __('Actions') ?></th>
+<?php endif; ?>
+                                </tr>
+                              </thead>
+                              <tbody class="table-group-divider">
+<?php foreach ($city->customers as $customer) : ?>
+                                <tr data-id="<?= h((string)$customer->id) ?>">
+<?php if (!empty($relatedShow['rowId'])) : ?>
+                                  <td class="integer id-col"><?= h((string)$customer->id) ?></td>
+<?php endif; ?>
+                                  <td class="string"><?= h($customer->name) ?></td>
+                                  <td class="string"><?= h($customer->address) ?></td>
+                                  <td class="string"><?= h($customer->phone) ?></td>
+<?php if (!empty($relatedShow['visible'])) : ?>
+                                  <td class="boolean visible"><?= $this->Icon->boolean($customer->visible) ?></td>
+<?php endif; ?>
+<?php if (!empty($relatedShow['pos'])) : ?>
+                                  <td class="integer pos"><?= $customer->pos === null ? '' : h((string)$customer->pos) ?></td>
+<?php endif; ?>
+                                  <td class="string"><?= h($customer->order_count) ?></td>
+<?php if (!empty($relatedShow['created']) || !empty($relatedShow['modified'])) : ?>
+                                  <td class="datetime created-modified">
+<?php     if (!empty($relatedShow['created'])) : ?>
+                                    <span class="created"><?= h($customer->created) ?></span>
+<?php     endif; ?>
+<?php     if (!empty($relatedShow['created']) && !empty($relatedShow['modified'])) : ?>
+                                    <br>
+<?php     endif; ?>
+<?php     if (!empty($relatedShow['modified'])) : ?>
+                                    <span class="modified"><?= h($customer->modified) ?></span>
+<?php     endif; ?>
+                                  </td>
+<?php endif; ?>
+<?php if (!empty($relatedShow['viewButton']) || !empty($relatedShow['editButton']) || !empty($relatedShow['deleteButton'])) : ?>
+                                  <td class="action">
+                                    <div class="table-data-feature">
+<?php         if (!empty($relatedShow['viewButton'])) : ?>
+                                      <?= $this->Action->view($customer->id, ['controller' => 'Customers']) ?>
+<?php         endif; ?>
+<?php         if (!empty($relatedShow['editButton'])) : ?>
+                                      <?= $this->Action->edit($customer->id, ['controller' => 'Customers']) ?>
+<?php         endif; ?>
+<?php         if (!empty($relatedShow['deleteButton'])) : ?>
+                                      <?= $this->Action->delete($customer->id, ['controller' => 'Customers']) ?>
+<?php         endif; ?>
+                                    </div>
+                                  </td>
+<?php endif; ?>
+                                </tr>
+<?php endforeach; ?>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+<?php endif; ?>
                 </div>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-</div>
+              </div>

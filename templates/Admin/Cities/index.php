@@ -1,71 +1,242 @@
 <?php
 /**
+ * Lista — megjelenítési kapcsolók ($show, plugin config + helyi felülírás)
+ * rowCheckbox, rowId, name, visible, pos, created, modified, counts,
+ * viewButton, editButton, deleteButton, rowDblClick
+ *
  * @var \App\View\AppView $this
  * @var iterable<\App\Model\Entity\City> $cities
+ * @var string|null $lastRecordId
+ * @var int|null $lastRecordPage
  */
+
+use Cake\Core\Configure;
+use Cake\Utility\Inflector;
+
+$show = Configure::read('JeffAdmin');
+$showLocal = [];
+
+$showLocal['index'] = [
+//    'rowCheckbox'     => false,
+//    'rowId'           => false,
+//    'name'            => false,
+//    'visible'         => false,
+//    'pos'             => false,
+//    'created'         => false,
+//    'modified'        => false,
+//    'counts'          => false,
+//    'viewButton'      => false,
+//    'editButton'      => false,
+//    'deleteButton'    => false,
+//    'rowDblClick'     => 'view',   // 'edit' | 'view' | 'none'
+];
+
+$show = array_merge($show['index'] ?? [], $showLocal['index']);
+
+$rowDblClick = $show['rowDblClick'] ?? 'edit';
+if (!in_array($rowDblClick, ['edit', 'view'], true)) {
+    $rowDblClick = 'none';
+}
+
+$listPage = max(1, (int)$this->request->getQuery('page', 1));
+
+$countColumns = [];
+if (!empty($show['counts'])) {
+    foreach ($cities as $city) {
+        foreach (array_keys($city->toArray()) as $field) {
+            if (str_ends_with($field, '_count')) {
+                $countColumns[$field] = Inflector::humanize(substr($field, 0, -6)) . ' count';
+            }
+        }
+        break;
+    }
+}
+
+$tableAttrs = '';
+if (!empty($show['rowCheckbox'])) {
+    $tableAttrs .= ' data-table-select';
+}
+if ($rowDblClick !== 'none') {
+    $tableAttrs .= ' data-row-dblclick="' . h($rowDblClick) . '"';
+}
 ?>
-<div class="cities index content">
-    <?= $this->Html->link(__('New City'), ['action' => 'add'], ['class' => 'button float-right']) ?>
-    <h3><?= __('Cities') ?></h3>
-    <div class="table-responsive">
-        <table>
-            <thead>
-                <tr>
-                    <th><?= $this->Paginator->sort('id') ?></th>
-                    <th><?= $this->Paginator->sort('shortname') ?></th>
-                    <th><?= $this->Paginator->sort('name') ?></th>
-                    <th><?= $this->Paginator->sort('zip') ?></th>
-                    <th><?= $this->Paginator->sort('lat') ?></th>
-                    <th><?= $this->Paginator->sort('lng') ?></th>
-                    <th><?= $this->Paginator->sort('club_count') ?></th>
-                    <th><?= $this->Paginator->sort('user_count') ?></th>
-                    <th><?= $this->Paginator->sort('visible') ?></th>
-                    <th><?= $this->Paginator->sort('pos') ?></th>
-                    <th><?= $this->Paginator->sort('created') ?></th>
-                    <th><?= $this->Paginator->sort('modified') ?></th>
-                    <th class="actions"><?= __('Actions') ?></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($cities as $city): ?>
-                <tr>
-                    <td><?= $this->Number->format($city->id) ?></td>
-                    <td><?= h($city->shortname) ?></td>
-                    <td><?= h($city->name) ?></td>
-                    <td><?= h($city->zip) ?></td>
-                    <td><?= h($city->lat) ?></td>
-                    <td><?= h($city->lng) ?></td>
-                    <td><?= $this->Number->format($city->club_count) ?></td>
-                    <td><?= $city->user_count === null ? '' : $this->Number->format($city->user_count) ?></td>
-                    <td><?= h($city->visible) ?></td>
-                    <td><?= $this->Number->format($city->pos) ?></td>
-                    <td><?= h($city->created) ?></td>
-                    <td><?= h($city->modified) ?></td>
-                    <td class="actions">
-                        <?= $this->Html->link(__('View'), ['action' => 'view', $city->id]) ?>
-                        <?= $this->Html->link(__('Edit'), ['action' => 'edit', $city->id]) ?>
-                        <?= $this->Form->postLink(
-                            __('Delete'),
-                            ['action' => 'delete', $city->id],
-                            [
-                                'method' => 'delete',
-                                'confirm' => __('Are you sure you want to delete # {0}?', $city->id),
-                            ]
+              <div class="row row-tight" style="margin-top: 16px;">
+                <div class="col-md-12">
+                  <div class="card shadow" aria-labelledby="cities-title">
+                    <div class="card-header border-bottom d-flex align-items-center justify-content-between">
+                      <div>
+                        <strong id="cities-title"><?= __('Cities') ?></strong>
+                        <small class="d-block"><?= __('All cities') ?></small>
+                      </div>
+                      <div class="table-data__tool-right">
+                        <?= $this->Html->link(
+                            $this->Icon->outline('plus') . ' ' . __('Add new city'),
+                            ['action' => 'add'],
+                            ['class' => 'btn btn-success', 'escape' => false]
                         ) ?>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
-    <div class="paginator">
-        <ul class="pagination">
-            <?= $this->Paginator->first('<< ' . __('first')) ?>
-            <?= $this->Paginator->prev('< ' . __('previous')) ?>
-            <?= $this->Paginator->numbers() ?>
-            <?= $this->Paginator->next(__('next') . ' >') ?>
-            <?= $this->Paginator->last(__('last') . ' >>') ?>
-        </ul>
-        <p><?= $this->Paginator->counter(__('Page {{page}} of {{pages}}, showing {{current}} record(s) out of {{count}} total')) ?></p>
-    </div>
-</div>
+                      </div>
+                    </div>
+
+                    <div class="card-body p-0 pt-2">
+                      <div class="table-responsive text-nowrap">
+                        <table class="table table-data2 table-border table-hover table-striped table-custom-hover mb-0"<?= $tableAttrs ?>>
+                          <thead>
+                            <tr>
+<?php if (!empty($show['rowCheckbox'])) : ?>
+                              <th class="select-col">
+                                <label class="au-checkbox">
+                                  <input type="checkbox" data-select-all aria-label="<?= h(__('Select all')) ?>">
+                                  <span class="au-checkmark"></span>
+                                </label>
+                              </th>
+<?php endif; ?>
+<?php if (!empty($show['rowId'])) : ?>
+                              <th class="integer id-col"><?= $this->Paginator->sort('id') ?></th>
+<?php endif; ?>
+<?php if (!empty($show['name'])) : ?>
+                              <th class="string"><?= $this->Paginator->sort('name') ?></th>
+<?php endif; ?>
+<?php /*
+                              <th class="string"><?= $this->Paginator->sort('shortname') ?></th>
+*/ ?>
+<?php /*
+                              <th class="string"><?= $this->Paginator->sort('zip') ?></th>
+*/ ?>
+<?php /*
+                              <th class="string"><?= $this->Paginator->sort('lat') ?></th>
+*/ ?>
+<?php /*
+                              <th class="string"><?= $this->Paginator->sort('lng') ?></th>
+*/ ?>
+<?php if (!empty($show['counts'])) : ?>
+<?php     foreach ($countColumns as $countKey => $countLabel) : ?>
+                              <th class="count"><?= $this->Paginator->sort($countKey, $countLabel) ?></th>
+<?php     endforeach; ?>
+<?php endif; ?>
+<?php if (!empty($show['visible'])) : ?>
+                              <th class="boolean"><?= $this->Paginator->sort('visible') ?></th>
+<?php endif; ?>
+<?php if (!empty($show['pos'])) : ?>
+                              <th class="integer pos"><?= $this->Paginator->sort('pos') ?></th>
+<?php endif; ?>
+<?php if (!empty($show['created']) || !empty($show['modified'])) : ?>
+                              <th class="datetime-meta">
+<?php     if (!empty($show['created'])) : ?>
+                                <?= $this->Paginator->sort('created') ?>
+<?php     endif; ?>
+<?php     if (!empty($show['created']) && !empty($show['modified'])) : ?>
+                                <br>
+<?php     endif; ?>
+<?php     if (!empty($show['modified'])) : ?>
+                                <?= $this->Paginator->sort('modified') ?>
+<?php     endif; ?>
+                              </th>
+<?php endif; ?>
+<?php if (!empty($show['viewButton']) || !empty($show['editButton']) || !empty($show['deleteButton'])) : ?>
+                              <th class="action"><?= __('Actions') ?></th>
+<?php endif; ?>
+                            </tr>
+                          </thead>
+                          <tbody class="table-group-divider">
+<?php foreach ($cities as $city) :
+    $dblClickUrl = $rowDblClick === 'none'
+        ? null
+        : $this->Url->build([
+            'action' => $rowDblClick,
+            $city->id,
+            '?' => ['listPage' => $listPage],
+        ]);
+    $rowClass = (isset($lastRecordId) && (string)$lastRecordId === (string)$city->id)
+        ? ' is-last-touched'
+        : '';
+    $rowAttrs = ' data-id="' . h((string)$city->id) . '"'
+        . ' id="row-' . h((string)$city->id) . '"';
+    if ($dblClickUrl) {
+        $rowAttrs .= ' data-dblclick-url="' . h($dblClickUrl) . '"';
+    }
+    if ($rowClass !== '') {
+        $rowAttrs .= ' class="' . trim($rowClass) . '"';
+    }
+?>
+                            <tr<?= $rowAttrs ?>>
+<?php if (!empty($show['rowCheckbox'])) : ?>
+                              <td class="select-col">
+                                <label class="au-checkbox">
+                                  <input type="checkbox" data-select-row value="<?= h((string)$city->id) ?>" aria-label="<?= h(__('Select row')) ?>">
+                                  <span class="au-checkmark"></span>
+                                </label>
+                              </td>
+<?php endif; ?>
+<?php if (!empty($show['rowId'])) : ?>
+                              <td class="integer id-col"><?= h((string)$city->id) ?></td>
+<?php endif; ?>
+<?php if (!empty($show['name'])) : ?>
+                              <td class="string"><?= h($city->name) ?></td>
+<?php endif; ?>
+<?php /*
+                              <td class="string"><?= h($city->shortname) ?></td>
+*/ ?>
+<?php /*
+                              <td class="string"><?= h($city->zip) ?></td>
+*/ ?>
+<?php /*
+                              <td class="string"><?= h($city->lat) ?></td>
+*/ ?>
+<?php /*
+                              <td class="string"><?= h($city->lng) ?></td>
+*/ ?>
+<?php if (!empty($show['counts'])) : ?>
+<?php     foreach ($countColumns as $countKey => $countLabel) :
+        $countVal = $city->get($countKey) ?? 0;
+        $countIsZero = ((float)$countVal) == 0.0;
+?>
+                              <td class="count<?= $countIsZero ? ' count--zero' : '' ?>"><?= h((string)$countVal) ?></td>
+<?php     endforeach; ?>
+<?php endif; ?>
+<?php if (!empty($show['visible'])) : ?>
+                              <td class="boolean visible"><?= $this->Icon->boolean($city->visible) ?></td>
+<?php endif; ?>
+<?php if (!empty($show['pos'])) : ?>
+                              <td class="integer pos"><?= $city->pos === null ? '' : h((string)$city->pos) ?></td>
+<?php endif; ?>
+<?php if (!empty($show['created']) || !empty($show['modified'])) : ?>
+                              <td class="datetime created-modified">
+<?php     if (!empty($show['created'])) : ?>
+                                <span class="created"><?= h($city->created) ?></span>
+<?php     endif; ?>
+<?php     if (!empty($show['created']) && !empty($show['modified'])) : ?>
+                                <br>
+<?php     endif; ?>
+<?php     if (!empty($show['modified'])) : ?>
+                                <span class="modified"><?= h($city->modified) ?></span>
+<?php     endif; ?>
+                              </td>
+<?php endif; ?>
+<?php if (!empty($show['viewButton']) || !empty($show['editButton']) || !empty($show['deleteButton'])) : ?>
+                              <td class="action">
+                                <div class="table-data-feature">
+<?php     if (!empty($show['viewButton'])) : ?>
+                                  <?= $this->Action->view($city->id) ?>
+<?php     endif; ?>
+<?php     if (!empty($show['editButton'])) : ?>
+                                  <?= $this->Action->edit($city->id) ?>
+<?php     endif; ?>
+<?php     if (!empty($show['deleteButton'])) : ?>
+                                  <?= $this->Action->delete($city->id) ?>
+<?php     endif; ?>
+                                </div>
+                              </td>
+<?php endif; ?>
+                            </tr>
+<?php endforeach; ?>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div class="card-footer border-top d-flex align-items-center justify-content-between">
+                      <?= $this->element('JeffAdmin.pagination') ?>
+                    </div>
+                  </div>
+                </div>
+              </div>

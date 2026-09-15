@@ -1,14 +1,12 @@
 <?php
 /**
  * Lista — megjelenítési kapcsolók ($show, plugin config + helyi felülírás)
- * rowCheckbox, rowId, visible, pos, created, modified, counts,
+ * rowCheckbox, rowId, name, visible, pos, created, modified, counts,
  * viewButton, editButton, deleteButton, rowDblClick
- *
- * rowDblClick: 'edit' | 'view' | 'none' (más / üres local = globális; egyéb = none)
  *
  * @var \App\View\AppView $this
  * @var iterable<\App\Model\Entity\Customer> $customers
- * @var string|null $lastRecordId  utoljára view/edit/add rekord id
+ * @var string|null $lastRecordId
  * @var int|null $lastRecordPage
  */
 
@@ -21,9 +19,10 @@ $showLocal = [];
 $showLocal['index'] = [
 //    'rowCheckbox'     => false,
 //    'rowId'           => false,
+//    'name'            => false,
 //    'visible'         => false,
 //    'pos'             => false,
-    'created'           => false,
+//    'created'         => false,
 //    'modified'        => false,
 //    'counts'          => false,
 //    'viewButton'      => false,
@@ -40,7 +39,6 @@ if (!in_array($rowDblClick, ['edit', 'view'], true)) {
 }
 
 $listPage = max(1, (int)$this->request->getQuery('page', 1));
-
 
 $countColumns = [];
 if (!empty($show['counts'])) {
@@ -95,10 +93,18 @@ if ($rowDblClick !== 'none') {
 <?php if (!empty($show['rowId'])) : ?>
                               <th class="integer id-col"><?= $this->Paginator->sort('id') ?></th>
 <?php endif; ?>
-                              <th class="string"><?= $this->Paginator->sort('city_id', __('City')) ?></th>
+<?php if (!empty($show['name'])) : ?>
                               <th class="string"><?= $this->Paginator->sort('name') ?></th>
+<?php endif; ?>
+<?php /*
+                              <th class="string"><?= $this->Paginator->sort('city_id', __('City')) ?></th>
+*/ ?>
+<?php /*
                               <th class="string"><?= $this->Paginator->sort('address') ?></th>
+*/ ?>
+<?php /*
                               <th class="string"><?= $this->Paginator->sort('phone') ?></th>
+*/ ?>
 <?php if (!empty($show['counts'])) : ?>
 <?php     foreach ($countColumns as $countKey => $countLabel) : ?>
                               <th class="count"><?= $this->Paginator->sort($countKey, $countLabel) ?></th>
@@ -161,18 +167,32 @@ if ($rowDblClick !== 'none') {
 <?php if (!empty($show['rowId'])) : ?>
                               <td class="integer id-col"><?= h((string)$customer->id) ?></td>
 <?php endif; ?>
+<?php if (!empty($show['name'])) : ?>
+                              <td class="string"><?= h($customer->name) ?></td>
+<?php endif; ?>
+<?php /*
                               <td class="string">
                                 <?= $customer->hasValue('city')
                                     ? $this->Html->link(
-                                        $customer->city->name,
+                                        h((string)$customer->city->name)
+                                            . $this->Icon->outline('link-chain', 'record-link__icon'),
                                         ['controller' => 'Cities', 'action' => 'view', $customer->city->id],
-                                        ['class' => 'text-decoration-none text-dark fw-bold record-link']
+                                        [
+                                            'class' => 'text-decoration-none text-dark fw-bold record-link',
+                                            'escape' => false,
+                                            'data-bs-toggle' => 'tooltip',
+                                            'data-bs-title' => __('View {0}: {1}', __('City'), (string)$customer->city->name),
+                                        ]
                                     )
                                     : '' ?>
                               </td>
-                              <td class="string"><?= h($customer->name) ?></td>
+*/ ?>
+<?php /*
                               <td class="string"><?= h($customer->address) ?></td>
+*/ ?>
+<?php /*
                               <td class="string"><?= h($customer->phone) ?></td>
+*/ ?>
 <?php if (!empty($show['counts'])) : ?>
 <?php     foreach ($countColumns as $countKey => $countLabel) :
         $countVal = $customer->get($countKey) ?? 0;
@@ -182,7 +202,7 @@ if ($rowDblClick !== 'none') {
 <?php     endforeach; ?>
 <?php endif; ?>
 <?php if (!empty($show['visible'])) : ?>
-                              <td class="boolean visible"><?= $this->Icon->visible($customer->visible) ?></td>
+                              <td class="boolean visible"><?= $this->Icon->boolean($customer->visible) ?></td>
 <?php endif; ?>
 <?php if (!empty($show['pos'])) : ?>
                               <td class="integer pos"><?= $customer->pos === null ? '' : h((string)$customer->pos) ?></td>

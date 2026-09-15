@@ -1,67 +1,236 @@
 <?php
 /**
+ * Lista — megjelenítési kapcsolók ($show, plugin config + helyi felülírás)
+ * rowCheckbox, rowId, name, visible, pos, created, modified, counts,
+ * viewButton, editButton, deleteButton, rowDblClick
+ *
  * @var \App\View\AppView $this
  * @var iterable<\App\Model\Entity\Item> $items
+ * @var string|null $lastRecordId
+ * @var int|null $lastRecordPage
  */
+
+use Cake\Core\Configure;
+use Cake\Utility\Inflector;
+
+$show = Configure::read('JeffAdmin');
+$showLocal = [];
+
+$showLocal['index'] = [
+//    'rowCheckbox'     => false,
+//    'rowId'           => false,
+//    'name'            => false,
+//    'visible'         => false,
+//    'pos'             => false,
+//    'created'         => false,
+//    'modified'        => false,
+//    'counts'          => false,
+//    'viewButton'      => false,
+//    'editButton'      => false,
+//    'deleteButton'    => false,
+//    'rowDblClick'     => 'view',   // 'edit' | 'view' | 'none'
+];
+
+$show = array_merge($show['index'] ?? [], $showLocal['index']);
+
+$rowDblClick = $show['rowDblClick'] ?? 'edit';
+if (!in_array($rowDblClick, ['edit', 'view'], true)) {
+    $rowDblClick = 'none';
+}
+
+$listPage = max(1, (int)$this->request->getQuery('page', 1));
+
+$countColumns = [];
+if (!empty($show['counts'])) {
+    foreach ($items as $item) {
+        foreach (array_keys($item->toArray()) as $field) {
+            if (str_ends_with($field, '_count')) {
+                $countColumns[$field] = Inflector::humanize(substr($field, 0, -6)) . ' count';
+            }
+        }
+        break;
+    }
+}
+
+$tableAttrs = '';
+if (!empty($show['rowCheckbox'])) {
+    $tableAttrs .= ' data-table-select';
+}
+if ($rowDblClick !== 'none') {
+    $tableAttrs .= ' data-row-dblclick="' . h($rowDblClick) . '"';
+}
 ?>
-<div class="items index content">
-    <?= $this->Html->link(__('New Item'), ['action' => 'add'], ['class' => 'button float-right']) ?>
-    <h3><?= __('Items') ?></h3>
-    <div class="table-responsive">
-        <table>
-            <thead>
-                <tr>
-                    <th><?= $this->Paginator->sort('id') ?></th>
-                    <th><?= $this->Paginator->sort('name') ?></th>
-                    <th><?= $this->Paginator->sort('unit') ?></th>
-                    <th><?= $this->Paginator->sort('price') ?></th>
-                    <th><?= $this->Paginator->sort('vat') ?></th>
-                    <th><?= $this->Paginator->sort('visible') ?></th>
-                    <th><?= $this->Paginator->sort('pos') ?></th>
-                    <th><?= $this->Paginator->sort('order_count') ?></th>
-                    <th><?= $this->Paginator->sort('created') ?></th>
-                    <th><?= $this->Paginator->sort('modified') ?></th>
-                    <th class="actions"><?= __('Actions') ?></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($items as $item): ?>
-                <tr>
-                    <td><?= $this->Number->format($item->id) ?></td>
-                    <td><?= h($item->name) ?></td>
-                    <td><?= h($item->unit) ?></td>
-                    <td><?= $item->price === null ? '' : $this->Number->format($item->price) ?></td>
-                    <td><?= $this->Number->format($item->vat) ?></td>
-                    <td><?= h($item->visible) ?></td>
-                    <td><?= $this->Number->format($item->pos) ?></td>
-                    <td><?= $item->order_count === null ? '' : $this->Number->format($item->order_count) ?></td>
-                    <td><?= h($item->created) ?></td>
-                    <td><?= h($item->modified) ?></td>
-                    <td class="actions">
-                        <?= $this->Html->link(__('View'), ['action' => 'view', $item->id]) ?>
-                        <?= $this->Html->link(__('Edit'), ['action' => 'edit', $item->id]) ?>
-                        <?= $this->Form->postLink(
-                            __('Delete'),
-                            ['action' => 'delete', $item->id],
-                            [
-                                'method' => 'delete',
-                                'confirm' => __('Are you sure you want to delete # {0}?', $item->id),
-                            ]
+              <div class="row row-tight" style="margin-top: 16px;">
+                <div class="col-md-12">
+                  <div class="card shadow" aria-labelledby="items-title">
+                    <div class="card-header border-bottom d-flex align-items-center justify-content-between">
+                      <div>
+                        <strong id="items-title"><?= __('Items') ?></strong>
+                        <small class="d-block"><?= __('All items') ?></small>
+                      </div>
+                      <div class="table-data__tool-right">
+                        <?= $this->Html->link(
+                            $this->Icon->outline('plus') . ' ' . __('Add new item'),
+                            ['action' => 'add'],
+                            ['class' => 'btn btn-success', 'escape' => false]
                         ) ?>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
-    <div class="paginator">
-        <ul class="pagination">
-            <?= $this->Paginator->first('<< ' . __('first')) ?>
-            <?= $this->Paginator->prev('< ' . __('previous')) ?>
-            <?= $this->Paginator->numbers() ?>
-            <?= $this->Paginator->next(__('next') . ' >') ?>
-            <?= $this->Paginator->last(__('last') . ' >>') ?>
-        </ul>
-        <p><?= $this->Paginator->counter(__('Page {{page}} of {{pages}}, showing {{current}} record(s) out of {{count}} total')) ?></p>
-    </div>
-</div>
+                      </div>
+                    </div>
+
+                    <div class="card-body p-0 pt-2">
+                      <div class="table-responsive text-nowrap">
+                        <table class="table table-data2 table-border table-hover table-striped table-custom-hover mb-0"<?= $tableAttrs ?>>
+                          <thead>
+                            <tr>
+<?php if (!empty($show['rowCheckbox'])) : ?>
+                              <th class="select-col">
+                                <label class="au-checkbox">
+                                  <input type="checkbox" data-select-all aria-label="<?= h(__('Select all')) ?>">
+                                  <span class="au-checkmark"></span>
+                                </label>
+                              </th>
+<?php endif; ?>
+<?php if (!empty($show['rowId'])) : ?>
+                              <th class="integer id-col"><?= $this->Paginator->sort('id') ?></th>
+<?php endif; ?>
+<?php if (!empty($show['name'])) : ?>
+                              <th class="string"><?= $this->Paginator->sort('name') ?></th>
+<?php endif; ?>
+<?php /*
+                              <th class="string"><?= $this->Paginator->sort('unit') ?></th>
+*/ ?>
+<?php /*
+                              <th class="number currency"><?= $this->Paginator->sort('price') ?></th>
+*/ ?>
+<?php /*
+                              <th class="number"><?= $this->Paginator->sort('vat') ?></th>
+*/ ?>
+<?php if (!empty($show['counts'])) : ?>
+<?php     foreach ($countColumns as $countKey => $countLabel) : ?>
+                              <th class="count"><?= $this->Paginator->sort($countKey, $countLabel) ?></th>
+<?php     endforeach; ?>
+<?php endif; ?>
+<?php if (!empty($show['visible'])) : ?>
+                              <th class="boolean"><?= $this->Paginator->sort('visible') ?></th>
+<?php endif; ?>
+<?php if (!empty($show['pos'])) : ?>
+                              <th class="integer pos"><?= $this->Paginator->sort('pos') ?></th>
+<?php endif; ?>
+<?php if (!empty($show['created']) || !empty($show['modified'])) : ?>
+                              <th class="datetime-meta">
+<?php     if (!empty($show['created'])) : ?>
+                                <?= $this->Paginator->sort('created') ?>
+<?php     endif; ?>
+<?php     if (!empty($show['created']) && !empty($show['modified'])) : ?>
+                                <br>
+<?php     endif; ?>
+<?php     if (!empty($show['modified'])) : ?>
+                                <?= $this->Paginator->sort('modified') ?>
+<?php     endif; ?>
+                              </th>
+<?php endif; ?>
+<?php if (!empty($show['viewButton']) || !empty($show['editButton']) || !empty($show['deleteButton'])) : ?>
+                              <th class="action"><?= __('Actions') ?></th>
+<?php endif; ?>
+                            </tr>
+                          </thead>
+                          <tbody class="table-group-divider">
+<?php foreach ($items as $item) :
+    $dblClickUrl = $rowDblClick === 'none'
+        ? null
+        : $this->Url->build([
+            'action' => $rowDblClick,
+            $item->id,
+            '?' => ['listPage' => $listPage],
+        ]);
+    $rowClass = (isset($lastRecordId) && (string)$lastRecordId === (string)$item->id)
+        ? ' is-last-touched'
+        : '';
+    $rowAttrs = ' data-id="' . h((string)$item->id) . '"'
+        . ' id="row-' . h((string)$item->id) . '"';
+    if ($dblClickUrl) {
+        $rowAttrs .= ' data-dblclick-url="' . h($dblClickUrl) . '"';
+    }
+    if ($rowClass !== '') {
+        $rowAttrs .= ' class="' . trim($rowClass) . '"';
+    }
+?>
+                            <tr<?= $rowAttrs ?>>
+<?php if (!empty($show['rowCheckbox'])) : ?>
+                              <td class="select-col">
+                                <label class="au-checkbox">
+                                  <input type="checkbox" data-select-row value="<?= h((string)$item->id) ?>" aria-label="<?= h(__('Select row')) ?>">
+                                  <span class="au-checkmark"></span>
+                                </label>
+                              </td>
+<?php endif; ?>
+<?php if (!empty($show['rowId'])) : ?>
+                              <td class="integer id-col"><?= h((string)$item->id) ?></td>
+<?php endif; ?>
+<?php if (!empty($show['name'])) : ?>
+                              <td class="string"><?= h($item->name) ?></td>
+<?php endif; ?>
+<?php /*
+                              <td class="string"><?= h($item->unit) ?></td>
+*/ ?>
+<?php /*
+                              <td class="number currency"><?= $item->price === null ? '' : $this->Format->money($item->price) ?></td>
+*/ ?>
+<?php /*
+                              <td class="number"><?= $item->vat === null ? '' : $this->Number->format($item->vat) ?></td>
+*/ ?>
+<?php if (!empty($show['counts'])) : ?>
+<?php     foreach ($countColumns as $countKey => $countLabel) :
+        $countVal = $item->get($countKey) ?? 0;
+        $countIsZero = ((float)$countVal) == 0.0;
+?>
+                              <td class="count<?= $countIsZero ? ' count--zero' : '' ?>"><?= h((string)$countVal) ?></td>
+<?php     endforeach; ?>
+<?php endif; ?>
+<?php if (!empty($show['visible'])) : ?>
+                              <td class="boolean visible"><?= $this->Icon->boolean($item->visible) ?></td>
+<?php endif; ?>
+<?php if (!empty($show['pos'])) : ?>
+                              <td class="integer pos"><?= $item->pos === null ? '' : h((string)$item->pos) ?></td>
+<?php endif; ?>
+<?php if (!empty($show['created']) || !empty($show['modified'])) : ?>
+                              <td class="datetime created-modified">
+<?php     if (!empty($show['created'])) : ?>
+                                <span class="created"><?= h($item->created) ?></span>
+<?php     endif; ?>
+<?php     if (!empty($show['created']) && !empty($show['modified'])) : ?>
+                                <br>
+<?php     endif; ?>
+<?php     if (!empty($show['modified'])) : ?>
+                                <span class="modified"><?= h($item->modified) ?></span>
+<?php     endif; ?>
+                              </td>
+<?php endif; ?>
+<?php if (!empty($show['viewButton']) || !empty($show['editButton']) || !empty($show['deleteButton'])) : ?>
+                              <td class="action">
+                                <div class="table-data-feature">
+<?php     if (!empty($show['viewButton'])) : ?>
+                                  <?= $this->Action->view($item->id) ?>
+<?php     endif; ?>
+<?php     if (!empty($show['editButton'])) : ?>
+                                  <?= $this->Action->edit($item->id) ?>
+<?php     endif; ?>
+<?php     if (!empty($show['deleteButton'])) : ?>
+                                  <?= $this->Action->delete($item->id) ?>
+<?php     endif; ?>
+                                </div>
+                              </td>
+<?php endif; ?>
+                            </tr>
+<?php endforeach; ?>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div class="card-footer border-top d-flex align-items-center justify-content-between">
+                      <?= $this->element('JeffAdmin.pagination') ?>
+                    </div>
+                  </div>
+                </div>
+              </div>

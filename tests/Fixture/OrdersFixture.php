@@ -21,14 +21,14 @@ class OrdersFixture extends TestFixture
             [
                 'id' => 1,
                 'customer_id' => 1,
-                'datetime' => '2026-09-12 05:41:15',
-                'date' => '2026-09-12',
-                'time' => '05:41:15',
+                'datetime' => '2026-09-15 12:50:16',
+                'date' => '2026-09-15',
+                'time' => '12:50:16',
                 'visible' => 1,
                 'pos' => 1,
                 'item_count' => 1,
-                'created' => '2026-09-12 05:41:15',
-                'modified' => '2026-09-12 05:41:15',
+                'created' => '2026-09-15 12:50:16',
+                'modified' => '2026-09-15 12:50:16',
             ],
         ];
         parent::init();

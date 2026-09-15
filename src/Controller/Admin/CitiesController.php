@@ -20,6 +20,26 @@ class CitiesController extends AppController
     public function index()
     {
         $query = $this->Cities->find();
+
+        // Header kereső (?search=) — sessionből a JeffAdmin AppController állítja vissza.
+        $search = trim((string)$this->request->getQuery('search', ''));
+        if ($search !== '') {
+            $parts = preg_split('/\s+/u', $search, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            $like = '%' . implode('%', $parts) . '%';
+
+            $query
+                ->where([
+                    'OR' => [
+                        'Cities.shortname LIKE' => $like,
+                        'Cities.name LIKE' => $like,
+                        'Cities.zip LIKE' => $like,
+                        'Cities.lat LIKE' => $like,
+                        'Cities.lng LIKE' => $like,
+                    ],
+                ])
+                ->distinct(['Cities.id']);
+        }
+
         $cities = $this->paginate($query);
 
         $this->set(compact('cities'));
@@ -34,7 +54,11 @@ class CitiesController extends AppController
      */
     public function view($id = null)
     {
+        $this->rememberLastRecord($id);
+
         $city = $this->Cities->get($id, contain: ['Customers']);
+        //dd($id);
+        //dd($city->toArray());
         $this->set(compact('city'));
     }
 
@@ -47,9 +71,14 @@ class CitiesController extends AppController
     {
         $city = $this->Cities->newEmptyEntity();
         if ($this->request->is('post')) {
-            $city = $this->Cities->patchEntity($city, $this->request->getData());
+            $data = $this->request->getData();
+            //dd($data);
+            $city = $this->Cities->patchEntity($city, $data);
+            //dd($city->toArray());
+            //dd($city->getErrors());
             if ($this->Cities->save($city)) {
                 $this->Flash->success(__('The city has been saved.'));
+                $this->rememberLastRecord($city->id);
 
                 return $this->redirect(['action' => 'index']);
             }
@@ -67,9 +96,15 @@ class CitiesController extends AppController
      */
     public function edit($id = null)
     {
+        $this->rememberLastRecord($id);
+
         $city = $this->Cities->get($id, contain: []);
         if ($this->request->is(['patch', 'post', 'put'])) {
-            $city = $this->Cities->patchEntity($city, $this->request->getData());
+            $data = $this->request->getData();
+            //dd($data);
+            $city = $this->Cities->patchEntity($city, $data);
+            //dd($city->toArray());
+            //dd($city->getErrors());
             if ($this->Cities->save($city)) {
                 $this->Flash->success(__('The city has been saved.'));
 

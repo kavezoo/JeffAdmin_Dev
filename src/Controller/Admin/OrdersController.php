@@ -21,6 +21,23 @@ class OrdersController extends AppController
     {
         $query = $this->Orders->find()
             ->contain(['Customers']);
+
+        // Header kereső (?search=) — sessionből a JeffAdmin AppController állítja vissza.
+        $search = trim((string)$this->request->getQuery('search', ''));
+        if ($search !== '') {
+            $parts = preg_split('/\s+/u', $search, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            $like = '%' . implode('%', $parts) . '%';
+
+            $query
+                ->leftJoinWith(['Customers'])
+                ->where([
+                    'OR' => [
+                        'Customers.name LIKE' => $like,
+                    ],
+                ])
+                ->distinct(['Orders.id']);
+        }
+
         $orders = $this->paginate($query);
 
         $this->set(compact('orders'));
@@ -35,8 +52,13 @@ class OrdersController extends AppController
      */
     public function view($id = null)
     {
+        $this->rememberLastRecord($id);
+
         $order = $this->Orders->get($id, contain: ['Customers', 'Items']);
-        $this->set(compact('order'));
+        //dd($id);
+        //dd($order->toArray());
+        $customers = $this->Orders->Customers->find('list', limit: 200)->all();
+        $this->set(compact('order', 'customers'));
     }
 
     /**
@@ -48,9 +70,14 @@ class OrdersController extends AppController
     {
         $order = $this->Orders->newEmptyEntity();
         if ($this->request->is('post')) {
-            $order = $this->Orders->patchEntity($order, $this->request->getData());
+            $data = $this->request->getData();
+            //dd($data);
+            $order = $this->Orders->patchEntity($order, $data);
+            //dd($order->toArray());
+            //dd($order->getErrors());
             if ($this->Orders->save($order)) {
                 $this->Flash->success(__('The order has been saved.'));
+                $this->rememberLastRecord($order->id);
 
                 return $this->redirect(['action' => 'index']);
             }
@@ -70,9 +97,15 @@ class OrdersController extends AppController
      */
     public function edit($id = null)
     {
+        $this->rememberLastRecord($id);
+
         $order = $this->Orders->get($id, contain: ['Items']);
         if ($this->request->is(['patch', 'post', 'put'])) {
-            $order = $this->Orders->patchEntity($order, $this->request->getData());
+            $data = $this->request->getData();
+            //dd($data);
+            $order = $this->Orders->patchEntity($order, $data);
+            //dd($order->toArray());
+            //dd($order->getErrors());
             if ($this->Orders->save($order)) {
                 $this->Flash->success(__('The order has been saved.'));
 

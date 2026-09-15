@@ -1,8 +1,5 @@
-<?php
+                                                                                        <?php
 /**
- * Ügyfél megtekintése — JeffAdmin form layout (disabled mezők) + kapcsolódó táblák.
- * Bake minta: egy fájl, minden mező / related oszlop itt van (nincs közös element).
- *
  * @var \App\View\AppView $this
  * @var \App\Model\Entity\Customer $customer
  * @var \Cake\Collection\CollectionInterface|string[] $cities
@@ -21,9 +18,7 @@ $showLocal['view'] = [
 
 $show = array_merge($show['view'] ?? [], $showLocal['view']);
 $relatedShow = array_merge(Configure::read('JeffAdmin.index') ?? [], []);
-
 $containerLess = ['inputContainer' => '{{content}}'];
-$orders = $customer->orders ?? [];
 ?>
               <div class="row row-tight" style="margin-top: 16px;">
                 <div class="col-12 col-xxl-11">
@@ -57,18 +52,17 @@ $orders = $customer->orders ?? [];
                         <div class="tab-pane fade show active" id="tab-basic" role="tabpanel" aria-labelledby="tab-basic-btn" tabindex="0">
                           <div class="row mb-3">
                             <div class="col-12 col-md-2 text-start text-md-end">
-                              <?= $this->Form->label('city_id', __('City') . ':', ['class' => 'form-control-label fw-bold']) ?>
+                              <?= $this->Form->label('city_id', __('City Id') . ':', ['class' => 'form-control-label fw-bold']) ?>
                             </div>
                             <div class="col-12 col-md-9">
                               <div class="select-with-action">
-                                <?= $this->Form->control('city_id', ['label' => false, 'options' => $cities, 'empty' => __('Please select'), 'class' => 'form-select', 'data-tom-select' => true, 'disabled' => true, 'templates' => $containerLess]) ?>
+                                <?= $this->Form->control('city_id', ['label' => false, 'options' => $cities, 'class' => 'form-select', 'data-tom-select' => true, 'disabled' => true, 'templates' => $containerLess]) ?>
                                 <button type="button" class="btn btn-outline-secondary select-with-action__btn" disabled aria-label="<?= h(__('More options')) ?>" data-bs-toggle="tooltip" data-bs-title="<?= h(__('More options')) ?>">
                                   <?= $this->Icon->outline('dots') ?>
                                 </button>
                               </div>
                             </div>
                           </div>
-
                           <div class="row mb-3">
                             <div class="col-12 col-md-2 text-start text-md-end">
                               <?= $this->Form->label('name', __('Name') . ':', ['class' => 'form-control-label fw-bold']) ?>
@@ -77,7 +71,6 @@ $orders = $customer->orders ?? [];
                               <?= $this->Form->control('name', ['label' => false, 'class' => 'form-control', 'disabled' => true, 'templates' => $containerLess]) ?>
                             </div>
                           </div>
-
                           <div class="row mb-3">
                             <div class="col-12 col-md-2 text-start text-md-end">
                               <?= $this->Form->label('address', __('Address') . ':', ['class' => 'form-control-label fw-bold']) ?>
@@ -86,7 +79,6 @@ $orders = $customer->orders ?? [];
                               <?= $this->Form->control('address', ['label' => false, 'class' => 'form-control', 'disabled' => true, 'templates' => $containerLess]) ?>
                             </div>
                           </div>
-
                           <div class="row mb-3">
                             <div class="col-12 col-md-2 text-start text-md-end">
                               <?= $this->Form->label('phone', __('Phone') . ':', ['class' => 'form-control-label fw-bold']) ?>
@@ -100,7 +92,6 @@ $orders = $customer->orders ?? [];
                         <div class="tab-pane fade" id="tab-settings" role="tabpanel" aria-labelledby="tab-settings-btn" tabindex="0">
                           <section class="form-section">
                             <h5 class="form-section__title"><?= __('Record settings') ?></h5>
-
                             <div class="row mb-3 align-items-center">
                               <div class="col-12 col-md-2 text-start text-md-end">
                                 <?= $this->Form->label('visible', __('Visible') . ':', ['class' => 'form-control-label fw-bold mb-0']) ?>
@@ -112,7 +103,6 @@ $orders = $customer->orders ?? [];
                                 </div>
                               </div>
                             </div>
-
                             <div class="row mb-3">
                               <div class="col-12 col-md-2 text-start text-md-end">
                                 <?= $this->Form->label('pos', __('Pos') . ':', ['class' => 'form-control-label fw-bold']) ?>
@@ -130,24 +120,10 @@ $orders = $customer->orders ?? [];
                     <div class="card-footer border-top">
                       <div class="offset-md-2">
 <?php if (!empty($show['editButton'])) : ?>
-                        <?= $this->Html->link(
-                            $this->Icon->outline('edit') . ' ' . __('Edit'),
-                            ['action' => 'edit', $customer->id],
-                            ['class' => 'btn btn-primary', 'escape' => false]
-                        ) ?>
+                        <?= $this->Action->editButton($customer->id) ?>
 <?php endif; ?>
 <?php if (!empty($show['cancelButton'])) : ?>
-                        <?= $this->Html->link(
-                            $this->Icon->outline('x') . ' ' . __('Cancel'),
-                            [
-                                'action' => 'index',
-                                '?' => array_filter([
-                                    'last' => $customer->id,
-                                    'listPage' => $this->request->getQuery('listPage'),
-                                ], fn($v) => $v !== null && $v !== ''),
-                            ],
-                            ['class' => 'btn btn-secondary', 'escape' => false]
-                        ) ?>
+                        <?= $this->Action->cancelButton($customer->id) ?>
 <?php endif; ?>
                       </div>
                     </div>
@@ -179,18 +155,16 @@ $orders = $customer->orders ?? [];
 <?php if (!empty($relatedShow['rowId'])) : ?>
                                   <th class="integer id-col"><?= __('Id') ?></th>
 <?php endif; ?>
-                                  <th class="datetime"><?= __('Datetime') ?></th>
-                                  <th class="date"><?= __('Date') ?></th>
-                                  <th class="time"><?= __('Time') ?></th>
-<?php if (!empty($relatedShow['counts'])) : ?>
-                                  <th class="count"><?= __('Items') ?></th>
-<?php endif; ?>
+                                  <th class="string"><?= __('Datetime') ?></th>
+                                  <th class="string"><?= __('Date') ?></th>
+                                  <th class="string"><?= __('Time') ?></th>
 <?php if (!empty($relatedShow['visible'])) : ?>
                                   <th class="boolean"><?= __('Visible') ?></th>
 <?php endif; ?>
 <?php if (!empty($relatedShow['pos'])) : ?>
-                                  <th class="integer"><?= __('Pos') ?></th>
+                                  <th class="integer pos"><?= __('Pos') ?></th>
 <?php endif; ?>
+                                  <th class="string"><?= __('Item Count') ?></th>
 <?php if (!empty($relatedShow['created']) || !empty($relatedShow['modified'])) : ?>
                                   <th class="datetime-meta">
 <?php     if (!empty($relatedShow['created'])) : ?>
@@ -210,40 +184,35 @@ $orders = $customer->orders ?? [];
                                 </tr>
                               </thead>
                               <tbody class="table-group-divider">
-<?php foreach ($orders as $order) : ?>
+<?php foreach ($customer->orders as $order) : ?>
                                 <tr data-id="<?= h((string)$order->id) ?>">
-<?php     if (!empty($relatedShow['rowId'])) : ?>
+<?php if (!empty($relatedShow['rowId'])) : ?>
                                   <td class="integer id-col"><?= h((string)$order->id) ?></td>
-<?php     endif; ?>
-                                  <td class="datetime"><?= h((string)$order->datetime) ?></td>
-                                  <td class="date"><?= h((string)$order->date) ?></td>
-                                  <td class="time"><?= h((string)$order->time) ?></td>
-<?php     if (!empty($relatedShow['counts'])) :
-        $itemCount = $order->item_count ?? 0;
-        $itemCountZero = ((float)$itemCount) == 0.0;
-?>
-                                  <td class="count<?= $itemCountZero ? ' count--zero' : '' ?>"><?= h((string)$itemCount) ?></td>
-<?php     endif; ?>
-<?php     if (!empty($relatedShow['visible'])) : ?>
-                                  <td class="boolean visible"><?= $this->Icon->visible($order->visible) ?></td>
-<?php     endif; ?>
-<?php     if (!empty($relatedShow['pos'])) : ?>
+<?php endif; ?>
+                                  <td class="string"><?= h($order->datetime) ?></td>
+                                  <td class="string"><?= h($order->date) ?></td>
+                                  <td class="string"><?= h($order->time) ?></td>
+<?php if (!empty($relatedShow['visible'])) : ?>
+                                  <td class="boolean visible"><?= $this->Icon->boolean($order->visible) ?></td>
+<?php endif; ?>
+<?php if (!empty($relatedShow['pos'])) : ?>
                                   <td class="integer pos"><?= $order->pos === null ? '' : h((string)$order->pos) ?></td>
-<?php     endif; ?>
-<?php     if (!empty($relatedShow['created']) || !empty($relatedShow['modified'])) : ?>
+<?php endif; ?>
+                                  <td class="string"><?= h($order->item_count) ?></td>
+<?php if (!empty($relatedShow['created']) || !empty($relatedShow['modified'])) : ?>
                                   <td class="datetime created-modified">
-<?php         if (!empty($relatedShow['created'])) : ?>
+<?php     if (!empty($relatedShow['created'])) : ?>
                                     <span class="created"><?= h($order->created) ?></span>
-<?php         endif; ?>
-<?php         if (!empty($relatedShow['created']) && !empty($relatedShow['modified'])) : ?>
-                                    <br>
-<?php         endif; ?>
-<?php         if (!empty($relatedShow['modified'])) : ?>
-                                    <span class="modified"><?= h($order->modified) ?></span>
-<?php         endif; ?>
-                                  </td>
 <?php     endif; ?>
-<?php     if (!empty($relatedShow['viewButton']) || !empty($relatedShow['editButton']) || !empty($relatedShow['deleteButton'])) : ?>
+<?php     if (!empty($relatedShow['created']) && !empty($relatedShow['modified'])) : ?>
+                                    <br>
+<?php     endif; ?>
+<?php     if (!empty($relatedShow['modified'])) : ?>
+                                    <span class="modified"><?= h($order->modified) ?></span>
+<?php     endif; ?>
+                                  </td>
+<?php endif; ?>
+<?php if (!empty($relatedShow['viewButton']) || !empty($relatedShow['editButton']) || !empty($relatedShow['deleteButton'])) : ?>
                                   <td class="action">
                                     <div class="table-data-feature">
 <?php         if (!empty($relatedShow['viewButton'])) : ?>
@@ -257,7 +226,7 @@ $orders = $customer->orders ?? [];
 <?php         endif; ?>
                                     </div>
                                   </td>
-<?php     endif; ?>
+<?php endif; ?>
                                 </tr>
 <?php endforeach; ?>
                               </tbody>

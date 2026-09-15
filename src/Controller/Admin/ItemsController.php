@@ -20,6 +20,23 @@ class ItemsController extends AppController
     public function index()
     {
         $query = $this->Items->find();
+
+        // Header kereső (?search=) — sessionből a JeffAdmin AppController állítja vissza.
+        $search = trim((string)$this->request->getQuery('search', ''));
+        if ($search !== '') {
+            $parts = preg_split('/\s+/u', $search, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            $like = '%' . implode('%', $parts) . '%';
+
+            $query
+                ->where([
+                    'OR' => [
+                        'Items.name LIKE' => $like,
+                        'Items.unit LIKE' => $like,
+                    ],
+                ])
+                ->distinct(['Items.id']);
+        }
+
         $items = $this->paginate($query);
 
         $this->set(compact('items'));
@@ -34,7 +51,11 @@ class ItemsController extends AppController
      */
     public function view($id = null)
     {
+        $this->rememberLastRecord($id);
+
         $item = $this->Items->get($id, contain: ['Orders']);
+        //dd($id);
+        //dd($item->toArray());
         $this->set(compact('item'));
     }
 
@@ -47,9 +68,14 @@ class ItemsController extends AppController
     {
         $item = $this->Items->newEmptyEntity();
         if ($this->request->is('post')) {
-            $item = $this->Items->patchEntity($item, $this->request->getData());
+            $data = $this->request->getData();
+            //dd($data);
+            $item = $this->Items->patchEntity($item, $data);
+            //dd($item->toArray());
+            //dd($item->getErrors());
             if ($this->Items->save($item)) {
                 $this->Flash->success(__('The item has been saved.'));
+                $this->rememberLastRecord($item->id);
 
                 return $this->redirect(['action' => 'index']);
             }
@@ -68,9 +94,15 @@ class ItemsController extends AppController
      */
     public function edit($id = null)
     {
+        $this->rememberLastRecord($id);
+
         $item = $this->Items->get($id, contain: ['Orders']);
         if ($this->request->is(['patch', 'post', 'put'])) {
-            $item = $this->Items->patchEntity($item, $this->request->getData());
+            $data = $this->request->getData();
+            //dd($data);
+            $item = $this->Items->patchEntity($item, $data);
+            //dd($item->toArray());
+            //dd($item->getErrors());
             if ($this->Items->save($item)) {
                 $this->Flash->success(__('The item has been saved.'));
 

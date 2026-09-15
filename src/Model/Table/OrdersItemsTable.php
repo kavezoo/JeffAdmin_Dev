@@ -47,10 +47,6 @@ class OrdersItemsTable extends Table
         $this->setPrimaryKey('id');
 
         $this->addBehavior('Timestamp');
-        $this->addBehavior('CounterCache', [
-            'Orders' => ['item_count'],
-            'Items' => ['order_count'],
-        ]);
 
         $this->belongsTo('Orders', [
             'foreignKey' => 'order_id',
